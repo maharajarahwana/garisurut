@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Garis URUT</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Garis</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian EPS-TOPIK - 52 Soal</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f1c40f;
+            --danger: #e74c3c;
+            --light: #f4f7f6;
+            --active-border: #8e44ad; /* Warna Ungu */
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #quiz-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        #main-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        @media (max-width: 800px) {
+            #main-container { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        #timer { font-size: 1.5rem; font-weight: bold; color: var(--danger); }
+
+        .question-text { font-size: 1.2rem; margin-bottom: 20px; line-height: 1.6; }
+
+        .options-container { display: grid; gap: 10px; }
+
+        .option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+
+        .option.selected { background-color: #e1f5fe; border-color: var(--accent); }
+        .correct-ans { border-color: var(--accent) !important; background-color: #e1f5fe !important; font-weight: bold; }
+        .wrong-ans { border-color: var(--danger) !important; background-color: #fdeaea !important; color: var(--danger); }
+
+        /* Navigation Grid */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .nav-item {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        /* Border Ungu Tebal untuk nomor yang sedang dikerjakan */
+        .nav-item.active { 
+            border: 4px solid var(--active-border) !important; 
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .nav-item.filled { background-color: #d1d8e0; }
+        
+        /* Nav colors after submit */
+        .nav-correct { background-color: var(--accent) !important; color: white; border-color: var(--accent); }
+        .nav-wrong { background-color: var(--warning) !important; color: black; border-color: var(--warning); }
+
+        .controls { display: flex; justify-content: space-between; margin-top: 20px; }
+        
+        button {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-prev { background: #95a5a6; color: white; }
+        .btn-next { background: var(--accent); color: white; }
+        .btn-submit { background: var(--success); color: white; width: 100%; margin-top: 10px; font-size: 1.1rem; }
+        button:disabled { opacity: 0.3; }
+
+        u { text-underline-offset: 4px; text-decoration-thickness: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-wrapper">
+    <div class="card" style="text-align: center;">
+        <div id="timer">50:00</div>
+    </div>
+
+    <div id="main-container">
+        <div class="card">
+            <div class="header">
+                <span id="q-label" style="font-weight:bold; color:var(--primary);">Soal</span>
+            </div>
+            <div id="q-text" class="question-text"></div>
+            <div id="options-box" class="options-container"></div>
+            
+            <div class="controls">
+                <button class="btn-prev" id="prev-btn" onclick="move(-1)">Sebelumnya</button>
+                <button class="btn-next" id="next-btn" onclick="move(1)">Berikutnya</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0; font-size: 1rem;">Navigasi Soal</h3>
+            <div class="nav-grid" id="nav-grid"></div>
+            <button class="btn-submit" id="submit-btn" onclick="finish()">SUBMIT</button>
+            <div id="result-box" style="margin-top: 15px; font-weight: bold; text-align: center;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const rawData = [
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["지갑<u>는</u> 없어요", "달력<u>이</u> 아니에요.", "동생<u>가</u> 운전기사예요.", "열쇠<u>은</u> 책상 위에 있어요."], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["방에 옷장<u>가</u> 없어요.", "저는 농부<u>이</u> 아니에요.", "다라 씨는 회사<u>에</u> 있어요.", "유수프는 식당<u>에</u> 밥을 먹어요."], c: 2 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["책<u>이</u> 읽어요.", "물<u>을</u> 마셔요.", "전화<u>에</u> 해요.", "신문<u>는</u> 봐요."], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["운동을 <u>하요.</u>", "회사에 <u>가아요.</u>", "커피를 <u>마시요.</u>", "텔레비전을 <u>봐요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["옷장<u>가</u> 있어요.", "저는 농부<u>이</u> 아닙니다.", "저는 텔레비전<u>를</u> 봐요.", "선생님<u>은</u> 한국 사람입니다."], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["주말에 <u>일하았어요.</u>", "어제 신문을 <u>읽었어요.</u>", "작년에 한국에 <u>오였어요.</u>", "수요일에 영화관에 <u>가었어요.</u>"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["휴게실에서 <u>쉬습니다.</u>", "기숙사에서 <u>청소하습니다.</u>", "시장에서 과일을 <u>사습니다.</u>", "식당에서 점심을 <u>먹습니다.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["주말에 장<u>에</u> 봤습니다.", "어제 친구<u>가</u> 만났습니다.", "일곱 시<u>에</u> 퇴근했습니다.", "아침에 빵<u>를</u> 먹었습니다."], c: 2 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["집까지 걸어서 20분쯤 <u>들어요.</u>", "퇴근 시간에는 차가 많이 <u>걸려요.</u>", "생일에 친구들을 집으로 <u>건너갔어요.</u>", "아침에 비가 왔는데 지금은 <u>그쳤어요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["어머니께서 청소를 <u>하십니다.</u>", "아버지께서 창문을 <u>닦십니다.</u>", "할머니께서 음식을 <u>만들십니다.</u>", "할아버지께서는 키가 <u>크으십니다.</u>"], c: 0 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["주스<u>과</u> 우유를 마셔요.", "김밥<u>와</u> 라면을 주세요.", "편의점<u>과</u> 식당이 있어요.", "우동<u>와</u> 돈가스를 먹어요."], c: 2 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["상자가 아주 <u>무겁었어요.</u>", "동생의 가방이 <u>예쁘어요.</u>", "오늘 날씨가 정말 <u>덥어요.</u>", "한국 음식을 잘 <u>만드네요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["어머니는 옷을 <u>읽었어요.</u>", "어제 청소기를 <u>널었어요.</u>", "친구는 창문을 <u>쓸었어요.</u>", "오전에 세탁기를 <u>돌렸어요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 것을 고르십시오.", a: ["집이 <u>가깝어서</u> 걸어왔어요.", "오늘 <u>피곤하서</u> 일찍 잤어요.", "친구를 <u>만나아서</u> 즐거웠어요.", "눈이 많이 <u>와서</u> 차가 막혔어요."], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["오늘은 날씨가 정말 <u>추우네요.</u>", "어머니께서 음식을 <u>만들십니다.</u>", "기숙사에서 음악을 <u>들을 거예요.</u>", "제가 이따가 휴게실을 <u>청소핼게요.</u>"], c: 2 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["여기에 이름<u>이</u> 쓰세요.", "이 층<u>으로</u> 올라가세요.", "여기에서 손<u>에</u> 씻으세요.", "사무실 안<u>에서</u> 들어오세요."], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오", a: ["<u>맛있은</u> 빵을 먹었어요.", "<u>예쁜</u> 원피스를 살 거예요.", "<u>덥은</u> 날씨를 안 좋아해요.", "머리가 <u>짧는</u> 사람이 제 친구예요."], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["바다가 무척 <u>아름답을</u> 거예요.", "쓰레기는 봉투에 <u>넣아야</u> 해요.", "저녁에 불고기를 <u>만들려고</u> 해요.", "청소하기 전에 창문을 <u>열으야</u> 돼요."], c: 2 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["동생이 피아노를 <u>췄어요.</u>", "주말에 배드민턴을 <u>탔어요.</u>", "친구와 테니스를 <u>들었어요.</u>", "바다가 예뻐서 사진을 <u>찍었어요.</u>"], c: 3 },
+        { q: "밑줄 친 부분이 맞는 것을 고르십시오.", a: ["불고기를 <u>만들아서</u> 먹었어요.", "편지를 <u>쓰서</u> 친구에게 줬어요.", "아침에 <u>일어났어서</u> 운동했어요.", "고향에 <u>가서</u> 부모님을 만났어요."], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["이메일을 <u>쓰을래요?</u>", "아침에 뭘 <u>먹을래요?</u>", "어디에서 <u>만들을래요?</u>", "같이 음악을 <u>듣을래요?</u>"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["기숙사에 <u>살으면</u> 편해요.", "많이 <u>아프면</u> 병원에 가세요.", "방이 <u>덥으면</u> 창문을 여세요.", "시간이 <u>있면</u> 영화를 볼 거예요."], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["기숙사에 <u>살니까</u> 편해요.", "상자가 <u>무겁우니까</u> 조심하세요.", "음악을 <u>듣으니까</u> 기분이 좋아요.", "제주도가 <u>유명하니까</u> 가 보세요."], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["배가 <u>아프는데</u> 약이 있어요?", "주소를 <u>모르는데</u> 어떻게 해요?", "기숙사에 <u>가은데</u> 같이 갈까요?", "오늘은 <u>덥은데</u> 내일 만날까요?"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["이 의자에 좀 <u>앉어도 돼요?</u>", "사무실 앞에 <u>주차하도 돼요?</u>", "여기에서 담배를 <u>피우도 돼요?</u>", "극장에서 사진을 <u>찍어도 돼요?</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["저는 <u>따뜻하는</u> 봄이 좋아요.", "자주 <u>만들는</u> 음식이 뭐예요?", "제일 <u>가깝은</u> 약국이 어디예요?", "지금 <u>듣는</u> 음악은 K-팝이에요."], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["한복을 <u>입을 줄</u> 알아요.", "떡국을 <u>끓이을 줄</u> 알아요.", "윷놀이를 <u>하을 줄</u> 알아요.", "불고기를 <u>만들을 줄</u> 알아요."], c: 0 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["할아버지께 덕담을 <u>빌었어요.</u>", "설날 아침에 떡국을 <u>입었어요.</u>", "보름달을 보고 소원을 <u>들었어요.</u>", "가족들하고 같이 차례를 <u>지냈어요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["버스를 <u>타서</u> 회사에 출근해요.", "술을 마셔서 <u>운전할 줄 몰라요.</u>", "한국어를 <u>배우려고</u> 센터에 가세요.", "박물관에 음식물을 <u>반입할 수 없어요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["내일 9시까지 꼭 <u>와면 돼요.</u>", "푸캄 씨, 기분 <u>나쁘지 마세요.</u>", "저는 내년에 제주도에 <u>가 봤습니다.</u>", "자야 씨는 K-드라마를 자주 <u>보는 것 같아요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["셔츠를 입고 넥타이를 <u>잠갔어요.</u>", "작업복이 불편해서 지퍼를 <u>맸어요.</u>", "출근한 후에 유니폼으로 <u>내렸어요.</u>", "날씨가 더워서 작업복 단추를 <u>풀었어요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["기차표를 <u>예약해 놓았어요.</u>", "구내식당 식권을 <u>사아 놓았어요.</u>", "식사 후에 창문을 <u>열아 놓았어요.</u>", "밥을 먹기 전에 식탁을 <u>닦어 놓았어요.</u>"], c: 0 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["나는 동료들과 사이가 <u>좋아요.</u>", "기숙사에서는 규칙을 <u>나오세요.</u>", "너무 더워서 짜증이 <u>질렀어요.</u>", "작업복을 입을 때는 지퍼를 <u>매세요.</u>"], c: 0 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["오늘 성희롱 예방 교육이 <u>있는다고</u> 합니다.", "불필요한 신체 접촉을 하면 <u>안되는다고</u> 합니다.", "나의 농담에 상대방은 불쾌감을 <u>느낄 수 있다고</u> 합니다.", "직장 내 성희롱 예방을 위해 성 인지 감수성이 <u>필요한다고</u> 합니다."], c: 2 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["냉장 창고의 온도를 <u>덮어요.</u>", "포장한 상자에 라벨을 <u>붙여요.</u>", "드릴을 사용해서 구멍을 <u>박아요.</u>", "날씨가 좋으면 콘크리트를 <u>조립해요.</u>"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["전원을 <u>끄도</u> 멈추지 않아요.", "비가 안 <u>와도</u> 덮개를 덮으세요.", "창문을 <u>열도</u> 냄새가 계속 나요.", "스위치를 <u>올리도</u> 작동이 안 돼요."], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["펜치로 철사를 <u>재요.</u>", "니퍼로 철사를 <u>뚫어요.</u>", "스패너로 너트를 <u>묶어요.</u>", "드라이버로 나사를 <u>돌려요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["불꽃의 크기를 <u>절단해요.</u>", "기계의 압력을 <u>조절해요.</u>", "창고의 온도를 <u>보관해요.</u>", "작업장의 창문을 <u>지시해요.</u>"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["원사 창고의 습도를 <u>조절해요.</u>", "근무 중에 자주 짜증을 <u>질러요.</u>", "날씨가 더우면 넥타이를 <u>잠가요.</u>", "작업에 필요한 공구를 <u>데려가요.</u>"], c: 0 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["작업장이 어디 <u>있자고 했어요.</u>", "언제 퇴근을 <u>했느냐고 했어요.</u>", "뭘로 먼지를 <u>털었다고 했어요.</u>", "몇 시에 점심을 <u>먹으라고 했어요.</u>"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["쌓여 있는 토사를 <u>껐어요.</u>", "고압 호스로 물을 <u>뿌렸어요.</u>", "원사 창고의 온도를 <u>준비했어요.</u>", "비가 와서 덮개로 자재를 <u>뚫었어요.</u>"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["저울로 무게를 <u>켰어요.</u>", "박스에 라벨을 <u>치웠어요.</u>", "바가지로 사료를 <u>발랐어요.</u>", "분무기로 소독약을 <u>뿌렸어요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["표면의 물기를 <u>주웠어요.</u>", "선체 표면의 녹을 <u>제거했어요.</u>", "선체 내부의 온도를 <u>처리했어요.</u>", "오늘 사용할 도료를 <u>조립했어요.</u>"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["마대로 분을 <u>뿌렸어요.</u>", "굴착기로 땅을 <u>팠어요.</u>", "가지를 밴드로 <u>잘랐어요.</u>", "벌목한 나무의 가지를 <u>켰어요.</u>"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["계약서를 <u>쓰는 지</u> 1주일이 지났어요.", "식당에서 <u>일하는 지</u> 1년이 되었어요.", "고기를 <u>꺼내 놓은 지</u> 10분이 지났어요.", "작업 지시를 <u>듣은 지</u> 한 시간이 되었어요."], c: 2 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["장갑을 <u>끼면</u> 안 됩니다.", "담배를 <u>마시면</u> 안 됩니다.", "사진을 <u>뿌리면</u> 안 됩니다.", "물로 불을 <u>켜면</u> 안 됩니다."], c: 0 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["안전을 위해 수칙을 <u>지키세요.</u>", "이상이 있으면 기계를 <u>예방하세요.</u>", "소음이 심하면 귀마개를 <u>켜세요.</u>", "작업 전에 환기 장치를 <u>착용하세요.</u>"], c: 0 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["높은 곳에서 작업할 때는 안전대를 <u>착용하세요.</u>", "오늘 작업은 소음이 심하니까 귀마개를 <u>지키세요.</u>", "날카로운 물건을 만질 때는 안전 장갑을 <u>끼우세요.</u>", "작업장 안에는 공기가 좋지 않으니까 마스크를 <u>입으세요.</u>"], c: 0 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["작업장이 <u>더럽은 줄 몰랐어요.</u>", "지금 밖에 비가 <u>오는 줄 몰랐어요.</u>", "벌써 퇴근 <u>시간이 되는 줄 몰랐어요.</u>", "왕민 씨가 키가 <u>작는 줄 몰랐어요.</u>"], c: 1 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["수당과 상여금이 <u>공제돼요.</u>", "고향으로 돈을 더 <u>받았어요.</u>", "오늘 회사와 계약을 <u>설치해요.</u>", "이번 달에 월급이 더 <u>들어왔어요.</u>"], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["오늘은 작업이 빨리 <u>끝났는</u> 편이에요.", "<u>타설했다가</u> 갑자기 비가 와서 작업을 중단했어요.", "제가 재고를 <u>파악하면서</u> 아궁 씨가 물건을 옮겨요.", "외국인 등록증을 <u>잃어버리더라도</u> kembali 발급받을 수 있어요."], c: 3 },
+        { q: "다음 중 밑줄 친 부분이 맞는 문장을 고르십시오.", a: ["벼를 <u>베으려면</u> 낫이 있어야 돼요.", "철사를 <u>펴으려면</u> 플라이어가 필요해요.", "체류 기간을 <u>연장해려면</u> 신청서를 내야 돼요.", "보험금을 <u>받으려면</u> 통장 사본을 주셔야 해요."], c: 3 }
+    ];
+
+    let questions = [];
+    let userAnswers = new Array(52).fill(null);
+    let currentIdx = 0;
+    let isSubmitted = false;
+    let timerValue = 50 * 60;
+
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function init() {
+        questions = [...rawData].map(item => {
+            const options = item.a.map((txt, i) => ({ text: txt, correct: i === item.c }));
+            return { q: item.q, options: options };
+        });
+        
+        renderNav();
+        renderQuestion();
+        startTimer();
+    }
+
+    function renderNav() {
+        const nav = document.getElementById('nav-grid');
+        nav.innerHTML = '';
+        questions.forEach((_, i) => {
+            const item = document.createElement('div');
+            item.className = 'nav-item';
+            item.innerText = i + 1;
+            
+            if (i === currentIdx) item.classList.add('active');
+            if (userAnswers[i] !== null) item.classList.add('filled');
+            
+            if (isSubmitted) {
+                const isCorrect = userAnswers[i] !== null && questions[i].options[userAnswers[i]].correct;
+                item.classList.add(isCorrect ? 'nav-correct' : 'nav-wrong');
+            }
+
+            item.onclick = () => { currentIdx = i; renderQuestion(); renderNav(); };
+            nav.appendChild(item);
+        });
+    }
+
+    function renderQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('q-label').innerText = `Soal Nomor ${currentIdx + 1}`;
+        document.getElementById('q-text').innerHTML = q.q;
+
+        const box = document.getElementById('options-box');
+        box.innerHTML = '';
+
+        q.options.forEach((opt, i) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            if (userAnswers[currentIdx] === i) div.classList.add('selected');
+
+            if (isSubmitted) {
+                if (opt.correct) div.classList.add('correct-ans');
+                else if (userAnswers[currentIdx] === i) div.classList.add('wrong-ans');
+            } else {
+                div.onclick = () => { 
+                    userAnswers[currentIdx] = i; 
+                    renderQuestion(); 
+                    renderNav();
+                };
+            }
+
+            const symbols = ['①', '②', '③', '④'];
+            div.innerHTML = `${symbols[i]} ${opt.text}`;
+            box.appendChild(div);
+        });
+
+        document.getElementById('prev-btn').disabled = (currentIdx === 0);
+        document.getElementById('next-btn').disabled = (currentIdx === 51);
+    }
+
+    function move(step) {
+        currentIdx += step;
+        renderQuestion();
+        renderNav();
+    }
+
+    function startTimer() {
+        const timerEl = document.getElementById('timer');
+        const interval = setInterval(() => {
+            if (isSubmitted) { clearInterval(interval); return; }
+            let m = Math.floor(timerValue / 60);
+            let s = timerValue % 60;
+            timerEl.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            if (timerValue <= 0) { clearInterval(interval); finish(); }
+            timerValue--;
+        }, 1000);
+    }
+
+    function finish() {
+        if (isSubmitted) return;
+        if (timerValue > 0 && !confirm("Apakah Anda yakin ingin mensubmit semua jawaban?")) return;
+
+        isSubmitted = true;
+        let correctCount = 0;
+        questions.forEach((q, idx) => {
+            if (userAnswers[idx] !== null && q.options[userAnswers[idx]].correct) correctCount++;
+        });
+
+        const percent = ((correctCount / 52) * 100).toFixed(1);
+        
+        document.getElementById('result-box').innerHTML = `
+            <div style="color:var(--primary); font-size:1.2rem;">Skor Akhir:</div>
+            <div style="font-size:2rem; color:var(--success);">${correctCount} / 52</div>
+            <div style="font-size:1.5rem;">(${percent}%)</div>
+        `;
+
+        document.getElementById('submit-btn').disabled = true;
+        renderQuestion();
+        renderNav();
+    }
+
+    init();
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
